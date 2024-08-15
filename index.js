@@ -26,6 +26,57 @@ async function run() {
         await client.connect();
         const productCollection = client.db("gadgetPointDB").collection('products');
 
+        //get all products
+        app.get('/products', async (req, res) => {
+            const { search, brand, category, priceRange } = req.query;
+
+            let query = {};
+            //for search
+            if (search) {
+                query.name = { $regex: search, $options: 'i' }
+            }
+            //for brand name
+            const selectBrands = {
+                "Lenovo": true,
+                "HP": true,
+                "Dell": true,
+                "ASUS": true,
+                "Acer": true,
+                "Apple": true,
+                "Microsoft": true,
+                "CyberPowerPC": true,
+                "MSI": true,
+                "Samsung": true,
+                "LG": true,
+                "BenQ": true,
+                "ViewSonic": true,
+                "Philips": true,
+                "AOC": true,
+                "Canon": true,
+                "Nikon": true,
+                "Sony": true,
+                "Fujifilm": true,
+                "Olympus": true
+            }
+
+            if (selectBrands[brand]) {
+                query.brand_name = brand;
+            }
+
+            //for category
+            const selectCategory = {
+                "Laptop": true,
+                "Desktop": true,
+                "Monitor": true,
+                "Camera": true,
+            }
+            if (selectCategory[category]) {
+                query.category = category;
+            }
+
+            const result = await productCollection.find(query).toArray()
+            res.send(result)
+        })
 
 
 
