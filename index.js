@@ -28,7 +28,7 @@ async function run() {
 
         //get all products
         app.get('/products', async (req, res) => {
-            const { search, brand, category, priceRange } = req.query;
+            const { search, brand, category, priceRange, sortPrice, sortDate } = req.query;
 
             let query = {};
             //for search
@@ -74,7 +74,37 @@ async function run() {
                 query.category = category;
             }
 
-            const result = await productCollection.find(query).toArray()
+            //for price range
+            if (priceRange) {
+                if (priceRange === "25000-35000") {
+                    query.price = { $gte: 25000, $lte: 35000 }
+                } else if (priceRange === "41000-50000") {
+                    query.price = { $gte: 41000, $lte: 50000 };
+                } else if (priceRange === "51000-60000") {
+                    query.price = { $gte: 51000, $lte: 60000 };
+                } else if (priceRange === "61000-85000") {
+                    query.price = { $gte: 61000, $lte: 85000 };
+                }
+            }
+
+            //for price sorting
+            let sorting = {};
+            if (sortPrice) {
+                if (sortPrice === "low-to-high") {
+                    sorting.price = 1;
+                } else if (sortPrice === "high-to-low") {
+                    sorting.price = -1;
+                }
+            }
+
+            //for date sorting
+            if (sortDate) {
+                if (sortDate === "newest-first") {
+                    sorting.date_time = -1;
+                }
+            }
+
+            const result = await productCollection.find(query).sort(sorting).toArray()
             res.send(result)
         })
 
