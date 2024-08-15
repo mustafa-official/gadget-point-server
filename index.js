@@ -28,7 +28,7 @@ async function run() {
 
         //get all products
         app.get('/products', async (req, res) => {
-            const { search, brand, category, priceRange, sortPrice, sortDate } = req.query;
+            const { search, brand, category, priceRange, sortPrice, sortDate, page, size } = req.query;
 
             let query = {};
             //for search
@@ -104,10 +104,21 @@ async function run() {
                 }
             }
 
-            const result = await productCollection.find(query).sort(sorting).toArray()
+            //for pagination
+            const totalPage = parseInt(page) - 1;
+            const pageSize = parseInt(size)
+
+            const result = await productCollection.find(query).skip(totalPage * pageSize).limit(pageSize).sort(sorting).toArray()
             res.send(result)
         })
 
+        app.get('/page-count', async (req, res) => {
+            const { category } = req.query;
+            let query = {}
+            if (category) query = { category: category }
+            const count = await productCollection.countDocuments(query);
+            res.send({ count })
+        })
 
 
 
