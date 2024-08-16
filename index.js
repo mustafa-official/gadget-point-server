@@ -5,8 +5,19 @@ const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
+const corsOptions = {
+    origin: [
+        "http://localhost:5173",
+        "https://gadget-point-1.web.app",
+        "https://gadget-point-1.firebaseapp.com"
+    ],
+    credentials: true,
+    optionSuccessStatus: 200,
+
+}
+
 //middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.elzgrcu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -23,7 +34,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         const productCollection = client.db("gadgetPointDB").collection('products');
 
         //get all products
@@ -35,45 +46,12 @@ async function run() {
             if (search) {
                 query.name = { $regex: search, $options: 'i' }
             }
-            //for brand name
-            const selectBrands = {
-                "Lenovo": true,
-                "HP": true,
-                "Dell": true,
-                "ASUS": true,
-                "Acer": true,
-                "Apple": true,
-                "Microsoft": true,
-                "CyberPowerPC": true,
-                "MSI": true,
-                "Samsung": true,
-                "LG": true,
-                "BenQ": true,
-                "ViewSonic": true,
-                "Philips": true,
-                "AOC": true,
-                "Canon": true,
-                "Nikon": true,
-                "Sony": true,
-                "Fujifilm": true,
-                "Olympus": true
-            }
 
-            if (selectBrands[brand]) {
-                query.brand_name = brand;
-            }
+            //for brand name
+            if (brand) query = { brand_name: brand }
 
             //for category
-            const selectCategory = {
-                "Laptop": true,
-                "Desktop": true,
-                "Monitor": true,
-                "Camera": true,
-            }
-            if (selectCategory[category]) {
-                query.category = category;
-            }
-
+            if (category) query = { category: category }
             //for price range
             if (priceRange) {
                 if (priceRange === "25000-35000") {
@@ -113,9 +91,11 @@ async function run() {
         })
 
         app.get('/page-count', async (req, res) => {
-            const { category } = req.query;
+            const { search, category, brand } = req.query;
             let query = {}
             if (category) query = { category: category }
+            if (brand) query = { brand_name: brand }
+            if (search) query = { name: search }
             const count = await productCollection.countDocuments(query);
             res.send({ count })
         })
@@ -125,7 +105,7 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
