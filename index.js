@@ -34,24 +34,25 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        await client.connect();
         const productCollection = client.db("gadgetPointDB").collection('products');
 
         //get all products
         app.get('/products', async (req, res) => {
             const { search, brand, category, priceRange, sortPrice, sortDate, page, size } = req.query;
-
             let query = {};
             //for search
             if (search) {
                 query.name = { $regex: search, $options: 'i' }
             }
-
             //for brand name
-            if (brand) query = { brand_name: brand }
-
+            if (brand) {
+                query.brand_name = { $in: brand.split(',') }
+            }
             //for category
-            if (category) query = { category: category }
+            if (category) {
+                query.category = { $in: category.split(',') }
+            }
             //for price range
             if (priceRange) {
                 if (priceRange === "25000-35000") {
@@ -79,23 +80,39 @@ async function run() {
             if (sortDate) {
                 if (sortDate === "newest-first") {
                     sorting.date_time = -1;
+                } else if (sortDate === "oldest-first") {
+                    sorting.date_time = 1
                 }
             }
 
             //for pagination
             const totalPage = parseInt(page) - 1;
-            const pageSize = parseInt(size)
-
+            const pageSize = parseInt(size);
             const result = await productCollection.find(query).skip(totalPage * pageSize).limit(pageSize).sort(sorting).toArray()
             res.send(result)
         })
 
         app.get('/page-count', async (req, res) => {
-            const { search, category, brand } = req.query;
+            const { search, category, brand, priceRange } = req.query;
             let query = {}
             if (category) query = { category: category }
             if (brand) query = { brand_name: brand }
             if (search) query = { name: search }
+
+            //for price range
+            if (priceRange) {
+                if (priceRange === "25000-35000") {
+                    query = { price: { $gte: 25000, $lte: 35000 } }
+                } else if (priceRange === "41000-50000") {
+                    query = { price: { $gte: 41000, $lte: 50000 } };
+                } else if (priceRange === "51000-60000") {
+                    query = { price: { $gte: 51000, $lte: 60000 } };
+                } else if (priceRange === "61000-85000") {
+                    query = { price: { $gte: 61000, $lte: 85000 } };
+                }
+            }
+
+
             const count = await productCollection.countDocuments(query);
             res.send({ count })
         })
@@ -105,7 +122,7 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        // await client.db("admin").command({ ping: 1 });
+        await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
