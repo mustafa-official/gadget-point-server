@@ -34,7 +34,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         const productCollection = client.db("gadgetPointDB").collection('products');
 
         //get all products
@@ -100,19 +100,7 @@ async function run() {
             if (search) query = { name: search }
 
             //for price range
-            if (priceRange) {
-                if (priceRange === "25000-35000") {
-                    query = { price: { $gte: 25000, $lte: 35000 } }
-                } else if (priceRange === "41000-50000") {
-                    query = { price: { $gte: 41000, $lte: 50000 } };
-                } else if (priceRange === "51000-60000") {
-                    query = { price: { $gte: 51000, $lte: 60000 } };
-                } else if (priceRange === "61000-85000") {
-                    query = { price: { $gte: 61000, $lte: 85000 } };
-                }
-            }
-
-
+            if (priceRange) query = { price: priceRange }
             const count = await productCollection.countDocuments(query);
             res.send({ count })
         })
@@ -122,7 +110,7 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
