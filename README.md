@@ -20,7 +20,9 @@
    ```sh
    npm start
    ```
-6. **Additional Information**:
-   **Main Entry Point: The main file for the server is index.js**
-   **Ensure MongoDB is installed and running on your local machine.**
-   **Verify that the MONGODB_URI in your .env file is correct and that you have the necessary permissions for the database.**
+6. **Additional Information**:  
+   **Main Entry Point:** The main file for the server is `index.js`.  
+   **Ensure MongoDB is installed and running on your local machine.**  
+   **Verify that the `MONGODB_URI` in your `.env` file is correct and that you have the necessary permissions for the database.**
+
+
